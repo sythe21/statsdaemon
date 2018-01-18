@@ -1,0 +1,35 @@
+version: '2.1'
+services:
+    graphite:
+        image: nickstenning/graphite
+        restart: always
+        ports:
+            - "8000:8000"
+            - "2003:2003"
+            - "2004:2004"
+        volumes:
+            - "/private/var/lib/graphite:/opt/graphite/storage/whisper"
+
+    statsd:
+        image: bitly/statsdaemon
+        restart: always
+        ports:
+            - "8125:8125/udp"
+            - "8126:8126"
+        command: -graphite="graphite:2003"
+        volumes:
+            - "/private/var/lib/statsd:/etc/statsd"
+        links:
+            - graphite
+
+    grafana:
+        image: grafana/grafana
+        restart: always
+        ports:
+            - "3000:3000"
+        volumes:
+            - "/private/var/lib/grafana:/var/lib/grafana"
+        links:
+            - graphite
+        environment:
+            - GF_SECURITY_ADMIN_PASSWORD=admin
